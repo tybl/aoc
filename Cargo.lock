@@ -99,7 +99,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 
 [[package]]
-name = "day2"
+name = "d1p1"
+version = "0.1.0"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "d1p2"
+version = "0.1.0"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "d2p1"
+version = "0.1.0"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "d2p2"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -122,20 +143,6 @@ name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
-
-[[package]]
-name = "problem_1"
-version = "0.1.0"
-dependencies = [
- "clap",
-]
-
-[[package]]
-name = "problem_2"
-version = "0.1.0"
-dependencies = [
- "clap",
-]
 
 [[package]]
 name = "proc-macro2"
