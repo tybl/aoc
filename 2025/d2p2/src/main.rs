@@ -9,7 +9,7 @@ pub struct CliArguments {
     pub input: String,
 }
 
-fn to_range(input: &str) -> std::ops::RangeInclusive<i64> {
+fn to_range(input: &str) -> RangeInclusive<i64> {
     let extent: Vec<i64> = input
         .split('-')
         .map(|x| x.parse::<i64>().unwrap())
@@ -21,7 +21,7 @@ fn is_invalid(x: i64) -> bool {
     let x_str = x.to_string();
     let x_len = x_str.len();
     (1..x_len)
-        .filter(|n| x_len % n == 0)
+        .filter(|n| x_len.is_multiple_of(*n))
         .any(|n| x_str == x_str[0..n].repeat(x_len / n))
 }
 
@@ -31,8 +31,7 @@ fn main() {
     let sum = input
         .trim()
         .split(',')
-        .map(|i| to_range(i))
-        .flatten()
+        .flat_map(to_range)
         .filter(|x| is_invalid(*x))
         .sum::<i64>();
     println!("{sum}");
