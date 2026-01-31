@@ -224,3 +224,11 @@ dependencies = [
  "clap",
  "helpers",
 ]
+
+[[package]]
+name = "y25d3p2"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "helpers",
+]
