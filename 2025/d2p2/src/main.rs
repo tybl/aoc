@@ -1,13 +1,7 @@
 use clap::Parser;
+use helpers::CliArguments;
 use std::fs;
 use std::ops::RangeInclusive;
-
-/// Command line parameters
-#[derive(Parser)]
-pub struct CliArguments {
-    #[arg(short, long, default_value = "input/0.txt")]
-    pub input: String,
-}
 
 fn to_range(input: &str) -> RangeInclusive<i64> {
     let extent: Vec<i64> = input

@@ -1,12 +1,6 @@
 use clap::Parser;
+use helpers::CliArguments;
 use std::fs;
-
-/// Command line parameters
-#[derive(Parser)]
-pub struct CliArguments {
-    #[arg(short, long, default_value = "input/0.txt")]
-    pub input: String,
-}
 
 fn main() {
     let mut password = 0;
