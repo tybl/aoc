@@ -240,3 +240,7 @@ dependencies = [
  "clap",
  "helpers",
 ]
+
+[[package]]
+name = "y25d5"
+version = "0.1.0"
