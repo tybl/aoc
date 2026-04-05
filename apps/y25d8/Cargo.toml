@@ -1,0 +1,10 @@
+[package]
+name = "y25d8"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap.workspace = true
+helpers.workspace = true
+nalgebra = "0.34.1"
+ordered-float = "5.2.0"
