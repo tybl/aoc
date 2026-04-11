@@ -60,10 +60,12 @@ fn part_two(input: &str) -> isize {
                 if is_point_contained_by(&(x_i, y_j), &tiles)
                     && is_point_contained_by(&(x_j, y_i), &tiles)
                 {
-                    let a = (x_max - x_min + 1) * (y_max - y_min + 1);
-                    if a > max_area {
-                        println!("({x_i},{y_i}) - ({x_j},{y_j}) = {a}");
-                        max_area = a;
+                    if !does_poly_line_cross_rect(&tiles, (x_min, y_min, x_max, y_max)) {
+                        let a = (x_max - x_min + 1) * (y_max - y_min + 1);
+                        if a > max_area {
+                            println!("({x_i},{y_i}) - ({x_j},{y_j}) = {a}");
+                            max_area = a;
+                        }
                     }
                 }
             }
@@ -96,6 +98,38 @@ fn is_point_contained_by((x, y): &(isize, isize), polygon: &Vec<(isize, isize)>)
     result
 }
 
+fn does_poly_line_cross_rect(
+    polygon: &Vec<(isize, isize)>,
+    (x_min, y_min, x_max, y_max): (isize, isize, isize, isize),
+) -> bool {
+    let (mut x_j, mut y_j) = *polygon.last().unwrap();
+    for i in 0..polygon.len() {
+        let x_i = polygon[i].0;
+        let y_i = polygon[i].1;
+        if x_i == x_j
+            && x_min < x_i
+            && x_i < x_max
+            && y_i.min(y_j) <= y_min
+            && y_max <= y_i.max(y_j)
+        {
+            //println!("({x_i},{y_i}) - ({x_j},{y_j}) crosses Rect({x_min},{y_min},{x_max},{y_max})");
+            return true;
+        }
+        if y_i == y_j
+            && y_min < y_i
+            && y_i < y_max
+            && x_i.min(x_j) <= x_min
+            && x_max <= x_i.max(x_j)
+        {
+            //println!("({x_i},{y_i}) - ({x_j},{y_j}) crosses Rect({x_min},{y_min},{x_max},{y_max})");
+            return true;
+        }
+        x_j = x_i;
+        y_j = y_i;
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,6 +151,18 @@ mod tests {
     fn points_of_poly_are_inside() {
         assert!(is_point_contained_by(
             &(1, 1),
+            &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
+        ));
+        assert!(is_point_contained_by(
+            &(2, 1),
+            &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
+        ));
+        assert!(is_point_contained_by(
+            &(2, 2),
+            &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
+        ));
+        assert!(is_point_contained_by(
+            &(1, 2),
             &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
         ));
     }
