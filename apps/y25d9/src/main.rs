@@ -55,17 +55,26 @@ fn part_two(input: &str) -> isize {
             if !tiles.iter().any(|p| {
                 let x = p.0;
                 let y = p.1;
-                x_min < x && x < x_max && y_min < y && y < y_max
+                let result = x_min < x && x < x_max && y_min < y && y < y_max;
+                //if result {
+                //println!("({x_i},{y_i} {x_j},{y_j}) contains ({x},{y})");
+                //}
+                result
             }) {
                 if is_point_contained_by(&(x_i, y_j), &tiles)
                     && is_point_contained_by(&(x_j, y_i), &tiles)
                 {
+                    if x_max == 94879 && y_min == 50002 {
+                        println!("({x_i},{y_i} {x_j},{y_j})");
+                    }
+                    let a = (x_max - x_min + 1) * (y_max - y_min + 1);
                     if !does_poly_line_cross_rect(&tiles, (x_min, y_min, x_max, y_max)) {
-                        let a = (x_max - x_min + 1) * (y_max - y_min + 1);
                         if a > max_area {
                             println!("({x_i},{y_i}) - ({x_j},{y_j}) = {a}");
                             max_area = a;
                         }
+                    } else if x_max == 94879 {
+                        //println!("({x_i},{y_i} {x_j},{y_j}): {a}");
                     }
                 }
             }
@@ -80,17 +89,31 @@ fn is_point_contained_by((x, y): &(isize, isize), polygon: &Vec<(isize, isize)>)
     }
     let mut result = false;
     let mut j = polygon.len() - 1;
+    let x = *x as f64;
+    let y = *y as f64;
     for i in 0..polygon.len() {
-        // If the polygon line segment crosses line O, i.e. if it starts above and ends below, or starts below and ends above.
-        if (polygon[i].1 < *y && polygon[j].1 >= *y) || (polygon[j].1 < *y && polygon[i].1 >= *y) {
-            // Calculate the X coordinate where the polygon line segment crosses line O, then test if that is to the left of target point.
-            if polygon[i].0
-                + (y - polygon[i].1) / (polygon[j].1 - polygon[i].1) * (polygon[j].0 - polygon[i].0)
-                < *x
-            {
+        let x_i = polygon[i].0 as f64;
+        let y_i = polygon[i].1 as f64;
+        let x_j = polygon[j].0 as f64;
+        let y_j = polygon[j].1 as f64;
+        if x == x_i && y == y_i {
+            return true;
+        }
+        if (y_i > y) != (y_j > y) {
+            let x_cross = (x_j - x_i) * (y - y_i) / (y_j - y_i) + x_i;
+            //println!(
+            //"The range of line segment ({x_i},{y_i}),({x_j},{y_j}) includes the y component of ({x},{y}) and it crosses at {x_cross}"
+            //);
+            if x == x_cross {
+                return true;
+            }
+            if x < x_cross {
                 result = !result;
             }
-        } else if *x == polygon[i].0 && *y == polygon[i].1 {
+        } else if y == y_i && y_i == y_j && (x_i > x) != (x_j > x) {
+            //println!(
+            //"The range of line segment ({x_i},{y_i}),({x_j},{y_j}) does not include the y component of ({x},{y}), but I think it should"
+            //);
             return true;
         }
         j = i;
@@ -164,6 +187,26 @@ mod tests {
         assert!(is_point_contained_by(
             &(1, 2),
             &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
+        ));
+    }
+
+    #[test]
+    fn points_on_the_line_are_inside() {
+        assert!(is_point_contained_by(
+            &(2, 3),
+            &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
+        ));
+        assert!(is_point_contained_by(
+            &(1, 2),
+            &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
+        ));
+        assert!(is_point_contained_by(
+            &(3, 2),
+            &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
+        ));
+        assert!(is_point_contained_by(
+            &(2, 1),
+            &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
         ));
     }
 }
