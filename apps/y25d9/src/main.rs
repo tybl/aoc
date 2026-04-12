@@ -43,80 +43,54 @@ fn part_two(input: &str) -> isize {
         .collect::<Vec<(isize, isize)>>();
     let mut max_area = 0;
     for i in 0..tiles.len() {
-        let x_i = tiles[i].0;
-        let y_i = tiles[i].1;
+        let (x_i, y_i) = tiles[i];
         for j in (i + 1)..tiles.len() {
-            let x_j = tiles[j].0;
-            let y_j = tiles[j].1;
+            let (x_j, y_j) = tiles[j];
             let x_min = x_i.min(x_j);
             let y_min = y_i.min(y_j);
             let x_max = x_i.max(x_j);
             let y_max = y_i.max(y_j);
-            if !tiles.iter().any(|p| {
-                let x = p.0;
-                let y = p.1;
-                let result = x_min < x && x < x_max && y_min < y && y < y_max;
-                //if result {
-                //println!("({x_i},{y_i} {x_j},{y_j}) contains ({x},{y})");
-                //}
-                result
-            }) {
-                if is_point_contained_by(&(x_i, y_j), &tiles)
-                    && is_point_contained_by(&(x_j, y_i), &tiles)
-                {
-                    if x_max == 94879 && y_min == 50002 {
-                        println!("({x_i},{y_i} {x_j},{y_j})");
-                    }
-                    let a = (x_max - x_min + 1) * (y_max - y_min + 1);
-                    if !does_poly_line_cross_rect(&tiles, (x_min, y_min, x_max, y_max)) {
-                        if a > max_area {
-                            println!("({x_i},{y_i}) - ({x_j},{y_j}) = {a}");
-                            max_area = a;
-                        }
-                    } else if x_max == 94879 {
-                        //println!("({x_i},{y_i} {x_j},{y_j}): {a}");
-                    }
-                }
+            if !tiles
+                .iter()
+                .any(|(x, y)| x_min < *x && *x < x_max && y_min < *y && *y < y_max)
+                && is_point_contained_by_orthogonal_polygon((x_i, y_j), &tiles)
+                && is_point_contained_by_orthogonal_polygon((x_j, y_i), &tiles)
+                && !does_poly_line_cross_rect(&tiles, (x_min, y_min, x_max, y_max))
+            {
+                let a = (x_max - x_min + 1) * (y_max - y_min + 1);
+                max_area = max_area.max(a);
             }
         }
     }
     max_area
 }
 
-fn is_point_contained_by((x, y): &(isize, isize), polygon: &Vec<(isize, isize)>) -> bool {
+fn is_point_contained_by_orthogonal_polygon(
+    (x, y): (isize, isize),
+    polygon: &Vec<(isize, isize)>,
+) -> bool {
     if 0 == polygon.len() {
         return false;
     }
     let mut result = false;
-    let mut j = polygon.len() - 1;
-    let x = *x as f64;
-    let y = *y as f64;
+    let (mut x_j, mut y_j) = *polygon.last().unwrap();
     for i in 0..polygon.len() {
-        let x_i = polygon[i].0 as f64;
-        let y_i = polygon[i].1 as f64;
-        let x_j = polygon[j].0 as f64;
-        let y_j = polygon[j].1 as f64;
-        if x == x_i && y == y_i {
-            return true;
-        }
-        if (y_i > y) != (y_j > y) {
-            let x_cross = (x_j - x_i) * (y - y_i) / (y_j - y_i) + x_i;
-            //println!(
-            //"The range of line segment ({x_i},{y_i}),({x_j},{y_j}) includes the y component of ({x},{y}) and it crosses at {x_cross}"
-            //);
-            if x == x_cross {
+        let (x_i, y_i) = polygon[i];
+        let x_max = x_i.max(x_j);
+        let y_min = y_i.min(y_j);
+
+        assert!((x_i == x_j) || (y_i == y_j)); // Either horizontal or vertical line segment
+
+        if y_min <= y && y <= y_i.max(y_j) {
+            if x_i.min(x_j) <= x && x <= x_max {
                 return true;
             }
-            if x < x_cross {
+            if x_max < x && y_min < y {
                 result = !result;
             }
-        } else if y == y_i && y_i == y_j && (x_i > x) != (x_j > x) {
-            //println!(
-            //"The range of line segment ({x_i},{y_i}),({x_j},{y_j}) does not include the y component of ({x},{y}), but I think it should"
-            //);
-            return true;
         }
-        j = i;
+        x_j = x_i;
+        y_j = y_i;
     }
     result
 }
@@ -127,15 +101,13 @@ fn does_poly_line_cross_rect(
 ) -> bool {
     let (mut x_j, mut y_j) = *polygon.last().unwrap();
     for i in 0..polygon.len() {
-        let x_i = polygon[i].0;
-        let y_i = polygon[i].1;
+        let (x_i, y_i) = polygon[i];
         if x_i == x_j
             && x_min < x_i
             && x_i < x_max
             && y_i.min(y_j) <= y_min
             && y_max <= y_i.max(y_j)
         {
-            //println!("({x_i},{y_i}) - ({x_j},{y_j}) crosses Rect({x_min},{y_min},{x_max},{y_max})");
             return true;
         }
         if y_i == y_j
@@ -144,7 +116,6 @@ fn does_poly_line_cross_rect(
             && x_i.min(x_j) <= x_min
             && x_max <= x_i.max(x_j)
         {
-            //println!("({x_i},{y_i}) - ({x_j},{y_j}) crosses Rect({x_min},{y_min},{x_max},{y_max})");
             return true;
         }
         x_j = x_i;
@@ -159,54 +130,79 @@ mod tests {
 
     #[test]
     fn empty_poly() {
-        assert!(!is_point_contained_by(&(1, 1), &vec![]));
+        assert!(!is_point_contained_by_orthogonal_polygon((1, 1), &vec![]));
     }
 
     #[test]
     fn center_of_square() {
-        assert!(is_point_contained_by(
-            &(2, 2),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (2, 2),
             &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
         ));
     }
 
     #[test]
     fn points_of_poly_are_inside() {
-        assert!(is_point_contained_by(
-            &(1, 1),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (1, 1),
             &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
         ));
-        assert!(is_point_contained_by(
-            &(2, 1),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (2, 1),
             &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
         ));
-        assert!(is_point_contained_by(
-            &(2, 2),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (2, 2),
             &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
         ));
-        assert!(is_point_contained_by(
-            &(1, 2),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (1, 2),
             &vec![(1, 1), (2, 1), (2, 2), (1, 2)]
         ));
     }
 
     #[test]
     fn points_on_the_line_are_inside() {
-        assert!(is_point_contained_by(
-            &(2, 3),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (2, 3),
             &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
         ));
-        assert!(is_point_contained_by(
-            &(1, 2),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (1, 2),
             &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
         ));
-        assert!(is_point_contained_by(
-            &(3, 2),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (3, 2),
             &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
         ));
-        assert!(is_point_contained_by(
-            &(2, 1),
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (2, 1),
             &vec![(1, 1), (3, 1), (3, 3), (1, 3)]
+        ));
+    }
+
+    // 01234567890123
+    //0..............
+    //1.......1---2..
+    //2.......|...|..
+    //3<=5====6=*.|..
+    //4..|........|..
+    //5..4--------3..
+    //6..............
+
+    #[test]
+    fn ray_inline_with_segment() {
+        assert!(is_point_contained_by_orthogonal_polygon(
+            (9, 3),
+            &vec![(7, 1), (11, 1), (11, 5), (2, 5), (2, 3), (7, 3)]
+        ));
+        assert!(!is_point_contained_by_orthogonal_polygon(
+            (13, 3),
+            &vec![(7, 1), (11, 1), (11, 5), (2, 5), (2, 3), (7, 3)]
+        ));
+        assert!(!is_point_contained_by_orthogonal_polygon(
+            (13, 1),
+            &vec![(7, 1), (11, 1), (11, 5), (2, 5), (2, 3), (7, 3)]
         ));
     }
 }
