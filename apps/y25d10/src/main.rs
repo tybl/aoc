@@ -55,6 +55,7 @@ fn find_min_button_presses(target: u16, buttons: &Vec<u16>) -> usize {
 
 fn xor_bfs(goal: u16, edges: &Vec<u16>) -> usize {
     let mut queue: VecDeque<(u16, usize)> = VecDeque::new();
+    let mut explored = vec![false; u16::MAX as usize + 1];
     queue.push_back((0, 0));
     loop {
         let (x, count) = queue.pop_front().unwrap();
@@ -63,7 +64,11 @@ fn xor_bfs(goal: u16, edges: &Vec<u16>) -> usize {
         }
         let count = count + 1;
         for e in edges {
-            queue.push_back((x ^ e, count));
+            let n = x ^ e;
+            if !explored[n as usize] {
+                explored[n as usize] = true;
+                queue.push_back((x ^ e, count));
+            }
         }
     }
 }
