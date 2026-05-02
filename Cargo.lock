@@ -463,6 +463,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "y25d10"
+version = "0.1.0"
+
+[[package]]
 name = "y25d1p1"
 version = "0.1.0"
 dependencies = [
