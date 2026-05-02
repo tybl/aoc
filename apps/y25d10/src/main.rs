@@ -21,7 +21,7 @@ fn part_one(input: &str) -> usize {
                 .map(generate_button)
                 .collect::<Vec<u16>>();
             let goal = parse_goal(goal);
-            find_min_button_presses(goal, &buttons)
+            find_min_button_presses_for_lights(goal, &buttons)
         })
         .sum()
 }
@@ -49,11 +49,14 @@ fn generate_button(input: &str) -> u16 {
         .fold(0, |acc, n| acc | n)
 }
 
-fn find_min_button_presses(target: u16, buttons: &Vec<u16>) -> usize {
-    xor_bfs(target, buttons)
+fn find_min_button_presses_for_lights(target: u16, buttons: &Vec<u16>) -> usize {
+    bfs(target, buttons, |a, b| a ^ b)
 }
 
-fn xor_bfs(goal: u16, edges: &Vec<u16>) -> usize {
+fn bfs<F>(goal: u16, edges: &Vec<u16>, f: F) -> usize
+where
+    F: Fn(u16, u16) -> u16,
+{
     let mut queue: VecDeque<(u16, usize)> = VecDeque::new();
     let mut explored = vec![false; u16::MAX as usize + 1];
     queue.push_back((0, 0));
@@ -64,7 +67,7 @@ fn xor_bfs(goal: u16, edges: &Vec<u16>) -> usize {
         }
         let count = count + 1;
         for e in edges {
-            let n = x ^ e;
+            let n = f(x, *e);
             if !explored[n as usize] {
                 explored[n as usize] = true;
                 queue.push_back((x ^ e, count));
@@ -102,8 +105,17 @@ mod test {
 
     #[test]
     fn test_find_min_button_presses() {
-        assert_eq!(2, find_min_button_presses(6, &vec![8, 10, 4, 12, 5, 3]));
-        assert_eq!(3, find_min_button_presses(8, &vec![29, 12, 17, 7, 30]));
-        assert_eq!(2, find_min_button_presses(46, &vec![31, 25, 55, 6]));
+        assert_eq!(
+            2,
+            find_min_button_presses_for_lights(6, &vec![8, 10, 4, 12, 5, 3])
+        );
+        assert_eq!(
+            3,
+            find_min_button_presses_for_lights(8, &vec![29, 12, 17, 7, 30])
+        );
+        assert_eq!(
+            2,
+            find_min_button_presses_for_lights(46, &vec![31, 25, 55, 6])
+        );
     }
 }
